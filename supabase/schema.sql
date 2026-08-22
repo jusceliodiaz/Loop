@@ -79,11 +79,15 @@ create policy "users can update their own profile"
   using (auth.uid() = id);
 
 -- ── servers ─────────────────────────────────────────────────────────────
+-- owner_id check lets the creator see their own server immediately on
+-- insert, without depending on the on_server_created trigger's membership
+-- row already being visible (avoids an insert+select RLS race)
 create policy "members can view their servers"
   on servers for select
   to authenticated
   using (
-    exists (
+    owner_id = auth.uid()
+    or exists (
       select 1 from server_members
       where server_members.server_id = servers.id
         and server_members.user_id = auth.uid()
@@ -96,15 +100,28 @@ create policy "authenticated users can create a server"
   with check (auth.uid() = owner_id);
 
 -- ── server_members ──────────────────────────────────────────────────────
+-- security definer function so this lookup bypasses RLS on server_members;
+-- referencing server_members directly inside its own policy causes
+-- "infinite recursion detected in policy for relation server_members"
+create or replace function public.is_server_member(p_server_id uuid, p_user_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from server_members
+    where server_members.server_id = p_server_id
+      and server_members.user_id = p_user_id
+  );
+$$;
+
 create policy "members can view membership of their servers"
   on server_members for select
   to authenticated
   using (
-    exists (
-      select 1 from server_members sm
-      where sm.server_id = server_members.server_id
-        and sm.user_id = auth.uid()
-    )
+    public.is_server_member(server_members.server_id, auth.uid())
   );
 
 create policy "server owner can add members"
