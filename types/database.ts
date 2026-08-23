@@ -24,7 +24,7 @@ export type Channel = {
   id: string;
   server_id: string;
   name: string;
-  type: "text";
+  type: "text" | "voice";
   created_at: string;
 };
 

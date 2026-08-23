@@ -2,7 +2,7 @@
 
 MVP web de comunidade em tempo real, para até 5 pessoas. Ver [LOOP_MASTER_SPEC.md](./LOOP_MASTER_SPEC.md) para a especificação completa de produto e arquitetura.
 
-Stack: **Next.js (App Router) + TypeScript + Tailwind + Supabase (Auth/Postgres/Realtime)**, deploy na **Vercel**.
+Stack: **Next.js (App Router) + TypeScript + Tailwind + Supabase (Auth/Postgres/Realtime) + LiveKit (voz/tela)**, deploy na **Vercel**.
 
 ## Setup
 
@@ -13,22 +13,30 @@ Stack: **Next.js (App Router) + TypeScript + Tailwind + Supabase (Auth/Postgres/
 3. Em **Project Settings → Data API**, copie a `Project URL` e a `anon public key`.
 4. Em **Authentication → Providers**, confirme que **Email** está habilitado (padrão).
 
-### 2. Configurar variáveis de ambiente
+### 2. Criar o projeto no LiveKit Cloud (voz + compartilhamento de tela)
+
+1. Crie uma conta e um projeto em [cloud.livekit.io](https://cloud.livekit.io) (tier gratuito "Build" é suficiente para poucos usuários).
+2. No dashboard do projeto, copie a **WebSocket URL** (`wss://SEU-PROJETO.livekit.cloud`), a **API Key** e o **API Secret**.
+
+### 3. Configurar variáveis de ambiente
 
 ```bash
 cp .env.example .env.local
 ```
 
-Preencha `.env.local` com os valores copiados do passo anterior:
+Preencha `.env.local` com os valores copiados dos passos anteriores:
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+NEXT_PUBLIC_LIVEKIT_URL=...
+LIVEKIT_API_KEY=...
+LIVEKIT_API_SECRET=...
 ```
 
-Nunca use a `service_role key` no frontend.
+Nunca use a `service_role key` do Supabase nem o `LIVEKIT_API_SECRET` no frontend — este último só é lido em server actions.
 
-### 3. Rodar localmente
+### 4. Rodar localmente
 
 ```bash
 npm install
@@ -41,8 +49,10 @@ Abra [http://localhost:3000](http://localhost:3000). Você será redirecionado p
 
 1. Crie uma conta em `/register` (username + e-mail + senha).
 2. Ao entrar sem nenhum Space, você verá a tela para criar seu primeiro Space — isso já cria o canal `#general` automaticamente.
-3. Convide os outros 4 usuários adicionando-os manualmente à tabela `server_members` pelo painel do Supabase (não há convite por link ainda — está fora do escopo do MVP, ver seção 11 da spec).
-4. Abra duas janelas/navegadores logados com usuários diferentes no mesmo Space e envie mensagens — elas devem aparecer em tempo real via Supabase Realtime.
+3. Como dono do Space, use o campo **"Adicionar pessoa"** (na coluna PEOPLE) para convidar os outros usuários pelo username deles — eles precisam ter uma conta criada primeiro em `/register`.
+4. Use o formulário embaixo de **ROOMS** (só visível para o dono) para criar novas Rooms de texto ou de voz.
+5. Abra duas janelas/navegadores logados com usuários diferentes no mesmo Space e envie mensagens no `#general` — elas devem aparecer em tempo real via Supabase Realtime.
+6. Entre numa Room de voz (🔊) para testar áudio e compartilhamento de tela via LiveKit.
 
 ## Estrutura
 
@@ -50,10 +60,10 @@ Abra [http://localhost:3000](http://localhost:3000). Você será redirecionado p
 /app
   (auth)/login, (auth)/register     — telas de autenticação
   (app)/                            — shell autenticado (rail de Spaces)
-  (app)/space/[serverId]/[channelId] — Room com chat em tempo real
-  actions/                          — server actions (auth, criação de Space)
+  (app)/space/[serverId]/[channelId] — Room de texto (chat) ou de voz (LiveKit)
+  actions/                          — server actions (auth, Space, Room, membros, token LiveKit)
 /components
-  auth/, space/, chat/
+  auth/, space/, chat/, live/
 /lib/supabase
   client.ts, server.ts, middleware.ts — clientes Supabase (browser/server) e sessão
 /types
@@ -65,4 +75,4 @@ proxy.ts                            — proteção de rotas (redireciona não au
 
 ## Próximos passos
 
-Ver seção "FASE 2 — Depois da aprovação do MVP" em [LOOP_MASTER_SPEC.md](./LOOP_MASTER_SPEC.md): convites por link, cargos/permissões, DMs, reactions, reply, upload de arquivos, presença, voz/vídeo.
+Ver seção "FASE 2 — Depois da aprovação do MVP" em [LOOP_MASTER_SPEC.md](./LOOP_MASTER_SPEC.md): convites por link, cargos/permissões, DMs, reactions, reply, upload de arquivos, presença, câmera nas Live Rooms.

@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ChatRoom } from "@/components/chat/ChatRoom";
+import { LiveRoom } from "@/components/live/LiveRoom";
 
 export default async function ChannelPage({
   params,
@@ -17,11 +18,15 @@ export default async function ChannelPage({
 
   const { data: channel } = await supabase
     .from("channels")
-    .select("id, name")
+    .select("id, name, type")
     .eq("id", channelId)
     .maybeSingle();
 
   if (!channel) notFound();
+
+  if (channel.type === "voice") {
+    return <LiveRoom key={channel.id} channelId={channel.id} channelName={channel.name} />;
+  }
 
   const { data: messages } = await supabase
     .from("messages")

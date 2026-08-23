@@ -36,7 +36,7 @@ create table if not exists channels (
   id uuid primary key default gen_random_uuid(),
   server_id uuid not null references servers(id) on delete cascade,
   name text not null,
-  type text not null default 'text' check (type = 'text'),
+  type text not null default 'text' check (type in ('text', 'voice')),
   created_at timestamptz not null default now()
 );
 
@@ -145,6 +145,17 @@ create policy "members can view channels of their servers"
       select 1 from server_members
       where server_members.server_id = channels.server_id
         and server_members.user_id = auth.uid()
+    )
+  );
+
+create policy "server owner can create channels"
+  on channels for insert
+  to authenticated
+  with check (
+    exists (
+      select 1 from servers
+      where servers.id = channels.server_id
+        and servers.owner_id = auth.uid()
     )
   );
 
