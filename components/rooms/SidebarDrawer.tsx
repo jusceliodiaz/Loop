@@ -82,7 +82,7 @@ export function SidebarDrawer({ children }: { children: React.ReactNode }) {
             : "w-0 px-0 [@media(max-width:899px)]:-translate-x-full"
         }`}
       >
-        <div className="flex h-full w-[280px] flex-col overflow-y-auto">{children}</div>
+        <div className="flex h-full w-full min-w-[240px] flex-col overflow-y-auto">{children}</div>
       </aside>
     </>
   );
