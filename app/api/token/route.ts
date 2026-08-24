@@ -33,5 +33,8 @@ export async function POST(req: Request) {
     canPublishData: false,
   });
 
+  // best-effort: powers the weekly recap on the home page, never blocks the join
+  void supabase.from("room_events").insert({ room_id: room, user_id: user.id });
+
   return Response.json({ token: await at.toJwt(), url: process.env.NEXT_PUBLIC_LIVEKIT_URL });
 }
