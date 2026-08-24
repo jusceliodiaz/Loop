@@ -3,11 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pencil, SendHorizontal, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { SupporterBadge } from "./SupporterBadge";
 
 type Author = {
   id: string;
   username: string;
   display_name: string | null;
+  is_supporter: boolean;
 };
 
 type ChatMessage = {
@@ -63,7 +65,7 @@ export function ChatThread({
 
     supabase
       .from("messages")
-      .select("id, room_id, user_id, content, created_at, edited_at, profiles(id, username, display_name)")
+      .select("id, room_id, user_id, content, created_at, edited_at, profiles(id, username, display_name, is_supporter)")
       .eq("room_id", roomId)
       .order("created_at", { ascending: true })
       .limit(200)
@@ -86,7 +88,7 @@ export function ChatThread({
           const row = payload.new as ChatMessage;
           const { data: profile } = await supabase
             .from("profiles")
-            .select("id, username, display_name")
+            .select("id, username, display_name, is_supporter")
             .eq("id", row.user_id)
             .single();
           setMessages((prev) => (prev.some((m) => m.id === row.id) ? prev : [...prev, { ...row, profiles: profile }]));
@@ -180,7 +182,12 @@ export function ChatThread({
                 </span>
 
                 <div className={`flex flex-col gap-1 ${bubbleMaxWidth} ${isOwn ? "items-end" : "items-start"}`}>
-                  {!isOwn && <span className="px-1 text-[12px] font-medium text-text-2">{authorName}</span>}
+                  {!isOwn && (
+                    <span className="flex items-center gap-1.5 px-1">
+                      <span className="text-[12px] font-medium text-text-2">{authorName}</span>
+                      {author?.is_supporter && <SupporterBadge />}
+                    </span>
+                  )}
 
                   {isEditing ? (
                     <div className="flex w-full gap-2">

@@ -9,7 +9,7 @@ export async function GET() {
   } = await supabase.auth.getUser();
   if (!user) return new Response("unauthorized", { status: 401 });
 
-  const { data: profiles } = await supabase.from("profiles").select("id, username, display_name");
+  const { data: profiles } = await supabase.from("profiles").select("id, username, display_name, is_supporter");
 
   const onlineIds = new Set<string>();
   await Promise.all(
@@ -28,6 +28,7 @@ export async function GET() {
       id: p.id,
       name: p.display_name ?? p.username,
       online: onlineIds.has(p.id),
+      isSupporter: p.is_supporter,
     }))
     .sort((a, b) => Number(b.online) - Number(a.online) || a.name.localeCompare(b.name));
 

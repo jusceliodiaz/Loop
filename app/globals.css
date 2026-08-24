@@ -29,6 +29,10 @@
   --live: #4ade80;
   --alert: #f87171;
 
+  /* apoiador — único uso decorativo intencional, fora da regra de acento único */
+  --supporter: #f2b84b;
+  --supporter-bg: rgba(242, 184, 75, 0.14);
+
   --background: var(--bg-shell);
   --foreground: var(--text-1);
 }
@@ -49,6 +53,8 @@
   --color-text-3: var(--text-3);
   --color-live: var(--live);
   --color-alert: var(--alert);
+  --color-supporter: var(--supporter);
+  --color-supporter-bg: var(--supporter-bg);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -113,6 +119,20 @@ body {
     transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
+  @keyframes orb-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 24px 4px var(--amb-1);
+    }
+    50% {
+      box-shadow: 0 0 36px 10px var(--amb-1);
+    }
+  }
+
+  .orb-pulse {
+    animation: orb-pulse 3s ease-in-out infinite;
+  }
+
   .stage-fade-in {
     animation: stage-fade-in 180ms ease-out both;
   }
@@ -130,6 +150,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .animate-speaking-ring,
   .stage-surface,
+  .orb-pulse,
   .stage-fade-in {
     animation: none !important;
     transition: none !important;

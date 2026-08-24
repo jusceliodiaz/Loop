@@ -12,6 +12,15 @@ create table if not exists profiles (
   created_at timestamptz not null default now()
 );
 
+-- Supporter tag (paid tier). No billing wired up yet — this column is the
+-- flag a future Stripe webhook (or you, manually) would set to true.
+alter table profiles add column if not exists is_supporter boolean not null default false;
+
+-- Test user: marks whoever signed up first as a supporter, so the badge has
+-- someone to show on. Safe to re-run — always resolves to the same person.
+update profiles set is_supporter = true
+where id = (select id from profiles order by created_at asc limit 1);
+
 alter table profiles enable row level security;
 
 drop policy if exists "profiles are viewable by authenticated users" on profiles;
