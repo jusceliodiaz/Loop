@@ -1,6 +1,7 @@
 import { Hash } from "lucide-react";
 import { ChatThread } from "./ChatThread";
 import { HomeMembersPanel } from "./HomeMembersPanel";
+import { MarkRoomRead } from "./MarkRoomRead";
 
 export function TextRoomStage({
   roomId,
@@ -13,6 +14,7 @@ export function TextRoomStage({
 }) {
   return (
     <div className="flex flex-1 overflow-hidden">
+      <MarkRoomRead roomId={roomId} userId={currentUserId} />
       <div className="relative flex flex-1 flex-col overflow-hidden">
         <div className="ambient-light pointer-events-none absolute inset-0 opacity-40" aria-hidden="true" />
 

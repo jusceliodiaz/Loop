@@ -2,14 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRoomContext } from "@livekit/components-react";
-import { MAX_CALL_MINUTES, WARNING_AT_SECONDS_LEFT } from "@/config/limits";
+import { WARNING_AT_SECONDS_LEFT } from "@/config/limits";
 
-const LIMIT_SECONDS = MAX_CALL_MINUTES * 60;
-
-/** Counts down from the per-call cap and disconnects the room when it hits zero. */
-export function useCallTimer() {
+/**
+ * Counts down from the plan's per-call cap and disconnects the room when it
+ * hits zero. This mirrors, client-side, the same limit already enforced as
+ * the LiveKit token's TTL (/api/token) — the countdown is cosmetic, the real
+ * cutoff happens at the SFU regardless of what this component does.
+ */
+export function useCallTimer(maxCallMinutes: number) {
   const room = useRoomContext();
-  const [secondsLeft, setSecondsLeft] = useState(LIMIT_SECONDS);
+  const limitSeconds = maxCallMinutes * 60;
+  const [secondsLeft, setSecondsLeft] = useState(limitSeconds);
   const disconnectedRef = useRef(false);
 
   useEffect(() => {
@@ -17,7 +21,7 @@ export function useCallTimer() {
 
     const interval = setInterval(() => {
       const elapsed = Math.floor((Date.now() - startedAt) / 1000);
-      const left = Math.max(0, LIMIT_SECONDS - elapsed);
+      const left = Math.max(0, limitSeconds - elapsed);
       setSecondsLeft(left);
 
       if (left === 0 && !disconnectedRef.current) {
@@ -32,7 +36,7 @@ export function useCallTimer() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [room]);
+  }, [room, limitSeconds]);
 
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;

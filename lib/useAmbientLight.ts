@@ -36,6 +36,7 @@ export function useAmbientLight({
     }
 
     function tick() {
+      if (document.hidden) return; // nobody's looking — don't burn CPU/battery drawing frames
       const canvas = canvasRef.current;
       if (canvas && video.readyState >= 2) {
         const result = sampleAmbientFromVideo(video, canvas);

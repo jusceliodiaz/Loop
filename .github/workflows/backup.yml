@@ -1,0 +1,30 @@
+name: Weekly database backup
+
+# The Free-tier Supabase plan has no point-in-time recovery, and `messages`
+# is the one thing in this app that can't be recreated (rooms and profiles
+# can; a lost conversation can't). A pg_dump artifact, kept 90 days, is a
+# cheap insurance policy against a bad migration or a fat-fingered delete.
+on:
+  schedule:
+    - cron: "0 6 * * 0" # Sundays, 06:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install postgresql-client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: pg_dump
+        run: |
+          pg_dump "${DATABASE_URL}" --no-owner --no-privileges --format=custom --file=loop-backup.dump
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: loop-backup-${{ github.run_id }}
+          path: loop-backup.dump
+          retention-days: 90

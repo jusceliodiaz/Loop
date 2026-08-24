@@ -1,12 +1,13 @@
 import { notFound, redirect } from "next/navigation";
-import { ROOMS } from "@/config/rooms";
+import { getRooms } from "@/lib/rooms";
 import { RoomStage } from "@/components/rooms/RoomStage";
 import { TextRoomStage } from "@/components/rooms/TextRoomStage";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function RoomPage({ params }: { params: Promise<{ roomId: string }> }) {
   const { roomId } = await params;
-  const room = ROOMS.find((r) => r.id === roomId);
+  const rooms = await getRooms();
+  const room = rooms.find((r) => r.id === roomId);
   if (!room) notFound();
 
   if (room.type === "text") {

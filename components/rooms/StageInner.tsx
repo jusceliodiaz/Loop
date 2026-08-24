@@ -32,13 +32,23 @@ import { useAmbientLight } from "@/lib/useAmbientLight";
 import { useCallTimer } from "@/lib/useCallTimer";
 import { MembersPanel } from "./MembersPanel";
 
-export function StageInner({ roomId, roomName }: { roomId: string; roomName: string }) {
+export function StageInner({
+  roomId,
+  roomName,
+  canShare,
+  maxCallMinutes,
+}: {
+  roomId: string;
+  roomName: string;
+  canShare: boolean;
+  maxCallMinutes: number;
+}) {
   const participants = useParticipants();
   const { localParticipant, isMicrophoneEnabled } = useLocalParticipant();
   const screenShareTracks = useTracks([Track.Source.ScreenShare]);
   const speakingParticipants = useSpeakingParticipants();
   const connectionState = useConnectionState();
-  const callTimer = useCallTimer();
+  const callTimer = useCallTimer(maxCallMinutes);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showPttSettings, setShowPttSettings] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -95,6 +105,23 @@ export function StageInner({ roomId, roomName }: { roomId: string; roomName: str
       window.removeEventListener("keyup", onKeyUp);
     };
   }, [ptt.enabled, ptt.key, localParticipant]);
+
+  useEffect(() => {
+    function isTypingTarget(target: EventTarget | null) {
+      const el = target as HTMLElement | null;
+      return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
+    }
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (ptt.enabled || isTypingTarget(e.target)) return;
+      if (!(e.shiftKey && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "m")) return;
+      e.preventDefault();
+      localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled);
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [ptt.enabled, localParticipant, isMicrophoneEnabled]);
 
   function updatePtt(next: PushToTalkConfig) {
     setPtt(next);
@@ -172,7 +199,7 @@ export function StageInner({ roomId, roomName }: { roomId: string; roomName: str
               onMouseDown={() => ptt.enabled && localParticipant.setMicrophoneEnabled(true)}
               onMouseUp={() => ptt.enabled && localParticipant.setMicrophoneEnabled(false)}
               onMouseLeave={() => ptt.enabled && isMicrophoneEnabled && localParticipant.setMicrophoneEnabled(false)}
-              title="Abrir microfone"
+              title="Abrir microfone (Ctrl/Cmd+Shift+M)"
               className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
                 isMicrophoneEnabled
                   ? "bg-glass-1 text-text-2 hover:bg-glass-2 hover:text-text-1"
@@ -183,10 +210,19 @@ export function StageInner({ roomId, roomName }: { roomId: string; roomName: str
             </button>
 
             <button
-              onClick={() => (isSharing ? stopShare() : setShowShareDialog(true))}
-              title={isSharing ? "Parar de compartilhar" : "Compartilhar tela"}
+              onClick={() => (isSharing ? stopShare() : canShare && setShowShareDialog(true))}
+              disabled={!isSharing && !canShare}
+              title={
+                isSharing
+                  ? "Parar de compartilhar"
+                  : canShare
+                    ? "Compartilhar tela"
+                    : "Cota de compartilhamento de tela do seu plano esgotada, ou seu plano não inclui tela"
+              }
               className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
-                isSharing ? "bg-glass-2 text-text-1" : "bg-glass-1 text-text-2 hover:bg-glass-2 hover:text-text-1"
+                isSharing
+                  ? "bg-glass-2 text-text-1"
+                  : "bg-glass-1 text-text-2 hover:bg-glass-2 hover:text-text-1 disabled:pointer-events-none disabled:opacity-40"
               }`}
             >
               {isSharing ? <ScreenShareOff size={16} strokeWidth={1.5} /> : <ScreenShare size={16} strokeWidth={1.5} />}
@@ -253,7 +289,7 @@ export function StageInner({ roomId, roomName }: { roomId: string; roomName: str
         )}
       </div>
 
-      <MembersPanel roomParticipants={participants} />
+      <MembersPanel roomId={roomId} roomParticipants={participants} />
     </div>
   );
 }

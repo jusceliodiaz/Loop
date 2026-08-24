@@ -1,4 +1,4 @@
-import { TEXT_ROOMS } from "@/config/rooms";
+import { getTextRooms } from "@/lib/rooms";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
@@ -8,8 +8,9 @@ export async function GET() {
   } = await supabase.auth.getUser();
   if (!user) return new Response("unauthorized", { status: 401 });
 
+  const textRooms = await getTextRooms();
   const conversations = await Promise.all(
-    TEXT_ROOMS.map(async (room) => {
+    textRooms.map(async (room) => {
       const { data } = await supabase
         .from("messages")
         .select("content, created_at, profiles(display_name, username)")

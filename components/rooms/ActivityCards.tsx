@@ -6,7 +6,7 @@ import { Clock, MonitorUp, Users } from "lucide-react";
 
 type LiveParticipant = { identity: string; name: string; sharing: boolean };
 type RoomLive = { roomId: string; roomName: string; participants: LiveParticipant[] };
-type RoomRecap = { roomId: string; roomName: string; joins: number; uniqueUsers: string[]; lastActive: string | null };
+type RoomRecap = { roomId: string; roomName: string; hours: number; uniqueUsers: string[]; lastActive: string | null };
 type Activity = { live: RoomLive[]; recap: RoomRecap[] };
 
 function initials(name: string) {
@@ -121,9 +121,8 @@ export function ActivityCards() {
             <div className="mt-auto flex items-center justify-between border-t border-stroke-soft pt-3 text-[12px] text-text-3">
               <span className="flex items-center gap-1.5">
                 <Users size={13} strokeWidth={1.5} />
-                {recap?.joins ?? 0} {(recap?.joins ?? 0) === 1 ? "entrada" : "entradas"} ·{" "}
-                {recap?.uniqueUsers.length ?? 0} {(recap?.uniqueUsers.length ?? 0) === 1 ? "pessoa" : "pessoas"} essa
-                semana
+                {(recap?.hours ?? 0).toLocaleString("pt-BR")}h · {recap?.uniqueUsers.length ?? 0}{" "}
+                {(recap?.uniqueUsers.length ?? 0) === 1 ? "pessoa" : "pessoas"} essa semana
               </span>
               <span className="flex items-center gap-1.5">
                 <Clock size={13} strokeWidth={1.5} />

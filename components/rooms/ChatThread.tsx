@@ -9,7 +9,7 @@ type Author = {
   id: string;
   username: string;
   display_name: string | null;
-  is_supporter: boolean;
+  plan: "free" | "basic" | "pro";
 };
 
 type ChatMessage = {
@@ -65,7 +65,7 @@ export function ChatThread({
 
     supabase
       .from("messages")
-      .select("id, room_id, user_id, content, created_at, edited_at, profiles(id, username, display_name, is_supporter)")
+      .select("id, room_id, user_id, content, created_at, edited_at, profiles(id, username, display_name, plan)")
       .eq("room_id", roomId)
       .order("created_at", { ascending: true })
       .limit(200)
@@ -88,7 +88,7 @@ export function ChatThread({
           const row = payload.new as ChatMessage;
           const { data: profile } = await supabase
             .from("profiles")
-            .select("id, username, display_name, is_supporter")
+            .select("id, username, display_name, plan")
             .eq("id", row.user_id)
             .single();
           setMessages((prev) => (prev.some((m) => m.id === row.id) ? prev : [...prev, { ...row, profiles: profile }]));
@@ -185,7 +185,7 @@ export function ChatThread({
                   {!isOwn && (
                     <span className="flex items-center gap-1.5 px-1">
                       <span className="text-[12px] font-medium text-text-2">{authorName}</span>
-                      {author?.is_supporter && <SupporterBadge />}
+                      {author?.plan === "pro" && <SupporterBadge />}
                     </span>
                   )}
 

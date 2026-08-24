@@ -20,6 +20,7 @@ export const SHARE_PROFILES: ShareProfile[] = [
     options: {
       resolution: { width: 1920, height: 1080, frameRate: 5 },
       contentHint: "detail",
+      audio: true,
       surfaceSwitching: "include",
       selfBrowserSurface: "exclude",
     },
@@ -32,6 +33,7 @@ export const SHARE_PROFILES: ShareProfile[] = [
     options: {
       resolution: { width: 1280, height: 720, frameRate: 30 },
       contentHint: "motion",
+      audio: true,
       surfaceSwitching: "include",
       selfBrowserSurface: "exclude",
     },
@@ -44,6 +46,7 @@ export const SHARE_PROFILES: ShareProfile[] = [
     options: {
       resolution: { width: 1920, height: 1080, frameRate: 30 },
       contentHint: "motion",
+      audio: true,
       surfaceSwitching: "include",
       selfBrowserSurface: "exclude",
     },

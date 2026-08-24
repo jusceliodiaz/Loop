@@ -9,7 +9,12 @@ import { StageInner } from "./StageInner";
 
 export function RoomStage({ roomId, roomName }: { roomId: string; roomName: string }) {
   const router = useRouter();
-  const [connection, setConnection] = useState<{ token: string; url: string } | null>(null);
+  const [connection, setConnection] = useState<{
+    token: string;
+    url: string;
+    canShare: boolean;
+    maxCallMinutes: number;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
 
@@ -23,10 +28,22 @@ export function RoomStage({ roomId, roomName }: { roomId: string; roomName: stri
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ room: roomId }),
         });
+        if (res.status === 402) {
+          if (!cancelled) {
+            setError("Seu plano não inclui salas de voz. Faça upgrade para o Basic ou o Pro.");
+            setConnection(null);
+          }
+          return;
+        }
         if (!res.ok) throw new Error("Não foi possível entrar na sala.");
         const data = await res.json();
         if (!cancelled) {
-          setConnection({ token: data.token, url: data.url });
+          setConnection({
+            token: data.token,
+            url: data.url,
+            canShare: data.canShare,
+            maxCallMinutes: data.maxCallMinutes,
+          });
           setError(null);
         }
       } catch {
@@ -88,7 +105,12 @@ export function RoomStage({ roomId, roomName }: { roomId: string; roomName: stri
       className="flex flex-1 flex-col overflow-hidden"
       onDisconnected={() => router.push("/")}
     >
-      <StageInner roomId={roomId} roomName={roomName} />
+      <StageInner
+        roomId={roomId}
+        roomName={roomName}
+        canShare={connection.canShare}
+        maxCallMinutes={connection.maxCallMinutes}
+      />
     </LiveKitRoom>
   );
 }

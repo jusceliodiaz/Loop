@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Hourglass, X } from "lucide-react";
-import { MAX_CALL_MINUTES } from "@/config/limits";
 
 export function CallEndedNotice() {
   const [visible, setVisible] = useState(false);
@@ -25,8 +24,7 @@ export function CallEndedNotice() {
     <div className="flex items-center gap-3 rounded-[14px] border border-stroke bg-glass-dark px-4 py-3 text-[13px] text-text-2 backdrop-blur-2xl">
       <Hourglass size={15} strokeWidth={1.5} className="shrink-0 text-text-3" />
       <span className="flex-1">
-        A chamada foi encerrada automaticamente após {MAX_CALL_MINUTES} minutos, pra manter o LiveKit dentro do
-        plano grátis.
+        A chamada foi encerrada automaticamente por atingir o limite de duração do seu plano.
       </span>
       <button
         onClick={() => setVisible(false)}
