@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/actions/auth";
+import { RoomSidebar } from "@/components/rooms/RoomSidebar";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -10,46 +10,22 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: memberships } = await supabase
-    .from("server_members")
-    .select("servers(id, name)")
-    .eq("user_id", user.id);
-
-  type SpaceRef = { id: string; name: string };
-  const spaces = (memberships ?? [])
-    .map((m) => m.servers as unknown as SpaceRef | null)
-    .filter((s): s is SpaceRef => Boolean(s));
-
   return (
     <div className="flex h-screen bg-[#0D0D10] text-[#F5F5F7]">
-      <aside className="flex w-20 flex-col items-center gap-3 border-r border-white/5 bg-[#151519] py-4">
-        <Link
-          href="/"
-          className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#7CF29C] text-sm font-bold text-[#0D0D10]"
-          title="LOOP"
-        >
-          L
-        </Link>
-        <div className="my-1 h-px w-8 bg-white/10" />
-        <nav className="flex flex-1 flex-col items-center gap-2">
-          {spaces.map((space) => (
-            <Link
-              key={space.id}
-              href={`/space/${space.id}`}
-              title={space.name}
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1D1D23] text-sm font-medium uppercase text-[#F5F5F7] transition hover:bg-[#26262E]"
-            >
-              {space.name.slice(0, 2)}
-            </Link>
-          ))}
-        </nav>
-        <form action={signOut}>
+      <aside className="flex w-56 flex-col border-r border-white/5 bg-[#151519]">
+        <div className="flex items-center gap-2 px-4 py-4">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#7CF29C] text-sm font-bold text-[#0D0D10]">
+            L
+          </span>
+          <span className="text-sm font-semibold tracking-wide">LOOP</span>
+        </div>
+        <RoomSidebar />
+        <form action={signOut} className="border-t border-white/5 p-3">
           <button
             type="submit"
-            title="Sair"
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-[#98989F] transition hover:bg-[#1D1D23] hover:text-[#F5F5F7]"
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[#98989F] transition hover:bg-[#1D1D23] hover:text-[#F5F5F7]"
           >
-            ⏻
+            Sair
           </button>
         </form>
       </aside>
