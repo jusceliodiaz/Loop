@@ -1,9 +1,9 @@
--- LOOP schema — versão simples (áudio + tela)
+-- LOOP schema — versão simples (áudio + tela) + chat de texto por sala
 -- Run this in the Supabase SQL editor (Project > SQL Editor > New query).
 --
--- Não há tabelas de salas, mensagens ou membros: as salas vivem em
--- config/rooms.ts (Git) e o estado de presença/fala vive no LiveKit.
--- O único propósito do banco aqui é guardar o display_name do usuário.
+-- Não há tabelas de servers/channels: as salas vivem em config/rooms.ts
+-- (Git) e o estado de presença/fala vive no LiveKit. Mensagens ficam ao
+-- lado, presas a um room_id de texto — sem hierarquia, sem cargos.
 
 create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -79,3 +79,61 @@ create policy "users can log their own room events"
   on room_events for insert
   to authenticated
   with check (auth.uid() = user_id);
+
+-- One-time cleanup: an older `messages` table from the abandoned
+-- servers/channels model (channel_id-based) may still exist. Replace it —
+-- this only fires once; a room_id-shaped table has no channel_id, so the
+-- condition is false on every later run.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'messages' and column_name = 'channel_id'
+  ) then
+    drop table if exists messages cascade;
+  end if;
+end $$;
+
+-- Text chat, scoped to a room_id (matches config/rooms.ts). No channels,
+-- no threads, no tombstones — just messages, editable/deletable by their author.
+create table if not exists messages (
+  id uuid primary key default gen_random_uuid(),
+  room_id text not null,
+  user_id uuid not null references profiles(id) on delete cascade,
+  content text not null check (char_length(content) between 1 and 4000),
+  created_at timestamptz not null default now(),
+  edited_at timestamptz
+);
+
+create index if not exists messages_room_idx on messages (room_id, created_at);
+
+alter table messages enable row level security;
+
+drop policy if exists "messages are viewable by authenticated users" on messages;
+create policy "messages are viewable by authenticated users"
+  on messages for select
+  to authenticated
+  using (true);
+
+drop policy if exists "users can send messages" on messages;
+create policy "users can send messages"
+  on messages for insert
+  to authenticated
+  with check (auth.uid() = user_id);
+
+drop policy if exists "users can edit their own messages" on messages;
+create policy "users can edit their own messages"
+  on messages for update
+  to authenticated
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+drop policy if exists "users can delete their own messages" on messages;
+create policy "users can delete their own messages"
+  on messages for delete
+  to authenticated
+  using (auth.uid() = user_id);
+
+-- Realtime for `messages` is NOT enabled here — `alter publication` in the
+-- SQL editor can deadlock against Supabase's own realtime worker. Enable it
+-- instead via Dashboard → Database → Replication → toggle "messages" on.

@@ -1,5 +1,5 @@
 import { TrackSource } from "@livekit/protocol";
-import { ROOMS } from "@/config/rooms";
+import { VOICE_ROOMS } from "@/config/rooms";
 import { getRoomServiceClient } from "@/lib/livekit/roomService";
 import { createClient } from "@/lib/supabase/server";
 
@@ -20,7 +20,7 @@ export async function GET() {
   const nameById = new Map((profiles ?? []).map((p) => [p.id, p.display_name ?? p.username]));
 
   const live = await Promise.all(
-    ROOMS.map(async (room) => {
+    VOICE_ROOMS.map(async (room) => {
       let participants: { identity: string; name: string; sharing: boolean }[] = [];
       try {
         const raw = await getRoomServiceClient().listParticipants(room.id);
@@ -37,7 +37,7 @@ export async function GET() {
   );
 
   const recapByRoom = new Map<string, { joins: number; uniqueUsers: Set<string>; lastActive: string | null }>();
-  for (const room of ROOMS) recapByRoom.set(room.id, { joins: 0, uniqueUsers: new Set(), lastActive: null });
+  for (const room of VOICE_ROOMS) recapByRoom.set(room.id, { joins: 0, uniqueUsers: new Set(), lastActive: null });
   for (const event of events ?? []) {
     const bucket = recapByRoom.get(event.room_id);
     if (!bucket) continue;
@@ -46,7 +46,7 @@ export async function GET() {
     if (!bucket.lastActive || event.created_at > bucket.lastActive) bucket.lastActive = event.created_at;
   }
 
-  const recap = ROOMS.map((room) => {
+  const recap = VOICE_ROOMS.map((room) => {
     const bucket = recapByRoom.get(room.id)!;
     return {
       roomId: room.id,

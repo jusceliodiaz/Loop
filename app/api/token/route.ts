@@ -1,5 +1,5 @@
 import { AccessToken } from "livekit-server-sdk";
-import { ROOMS } from "@/config/rooms";
+import { VOICE_ROOMS } from "@/config/rooms";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(req: Request) {
@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   if (!user) return new Response("unauthorized", { status: 401 });
 
   const { room } = await req.json();
-  if (typeof room !== "string" || !ROOMS.some((r) => r.id === room)) {
+  if (typeof room !== "string" || !VOICE_ROOMS.some((r) => r.id === room)) {
     return new Response("unknown room", { status: 404 });
   }
 

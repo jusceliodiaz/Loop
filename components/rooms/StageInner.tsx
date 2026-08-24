@@ -11,23 +11,37 @@ import {
   useSpeakingParticipants,
   useTracks,
 } from "@livekit/components-react";
-import { Loader2, LogOut, Mic, MicOff, ScreenShare, ScreenShareOff, Settings } from "lucide-react";
+import {
+  Hourglass,
+  Loader2,
+  LogOut,
+  MessageSquare,
+  Mic,
+  MicOff,
+  ScreenShare,
+  ScreenShareOff,
+  Settings,
+} from "lucide-react";
 import { ParticipantAvatar } from "./ParticipantAvatar";
 import { ShareProfileDialog, type ShareProfile } from "./ShareProfileDialog";
 import { ScreenShareStage } from "./ScreenShareStage";
 import { PushToTalkSettings } from "./PushToTalkSettings";
+import { ChatPanel } from "./ChatPanel";
 import { keyLabel, loadPushToTalkSettings, savePushToTalkSettings, type PushToTalkConfig } from "@/lib/pushToTalk";
 import { useAmbientLight } from "@/lib/useAmbientLight";
+import { useCallTimer } from "@/lib/useCallTimer";
 import { MembersPanel } from "./MembersPanel";
 
-export function StageInner({ roomName }: { roomName: string }) {
+export function StageInner({ roomId, roomName }: { roomId: string; roomName: string }) {
   const participants = useParticipants();
   const { localParticipant, isMicrophoneEnabled } = useLocalParticipant();
   const screenShareTracks = useTracks([Track.Source.ScreenShare]);
   const speakingParticipants = useSpeakingParticipants();
   const connectionState = useConnectionState();
+  const callTimer = useCallTimer();
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showPttSettings, setShowPttSettings] = useState(false);
+  const [showChat, setShowChat] = useState(false);
   const [activeShareIdentity, setActiveShareIdentity] = useState<string | null>(null);
   const [activeProfile, setActiveProfile] = useState<ShareProfile | null>(null);
   const [ptt, setPtt] = useState<PushToTalkConfig>(() => loadPushToTalkSettings());
@@ -136,10 +150,21 @@ export function StageInner({ roomName }: { roomName: string }) {
           className="pointer-events-auto flex w-full max-w-[720px] flex-col gap-2 rounded-[20px] border border-stroke bg-glass-dark px-5 py-4 backdrop-blur-2xl"
           style={{ boxShadow: "0 18px 50px rgba(0,0,0,.45)" }}
         >
-          <p className="flex items-center gap-2 text-[14.5px] text-text-2">
-            {reconnecting && <Loader2 size={14} strokeWidth={1.5} className="animate-spin" />}
-            {statusLine}
-          </p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="flex items-center gap-2 text-[14.5px] text-text-2">
+              {reconnecting && <Loader2 size={14} strokeWidth={1.5} className="animate-spin" />}
+              {statusLine}
+            </p>
+            <span
+              title="Tempo restante nesta chamada"
+              className={`flex items-center gap-1.5 text-[12.5px] tabular-nums ${
+                callTimer.warning ? "text-alert" : "text-text-3"
+              }`}
+            >
+              <Hourglass size={12} strokeWidth={1.5} />
+              {callTimer.label}
+            </span>
+          </div>
 
           <div className="flex items-center gap-2">
             <button
@@ -177,6 +202,16 @@ export function StageInner({ roomName }: { roomName: string }) {
               <Settings size={16} strokeWidth={1.5} />
             </button>
 
+            <button
+              onClick={() => setShowChat((v) => !v)}
+              title={showChat ? "Fechar chat" : "Abrir chat"}
+              className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
+                showChat ? "bg-glass-2 text-text-1" : "bg-glass-1 text-text-2 hover:bg-glass-2 hover:text-text-1"
+              }`}
+            >
+              <MessageSquare size={16} strokeWidth={1.5} />
+            </button>
+
             {activeProfile && (
               <span className="flex h-7 items-center gap-1.5 rounded-full bg-glass-1 py-0 pr-2.5 pl-3 text-[12px] font-[450] text-text-2">
                 {activeProfile.hint}
@@ -201,6 +236,15 @@ export function StageInner({ roomName }: { roomName: string }) {
           </div>
         </div>
       </div>
+
+        {showChat && (
+          <ChatPanel
+            roomId={roomId}
+            roomName={roomName}
+            currentUserId={localParticipant.identity}
+            onClose={() => setShowChat(false)}
+          />
+        )}
 
         <RoomAudioRenderer />
         {showShareDialog && <ShareProfileDialog onSelect={startShare} onClose={() => setShowShareDialog(false)} />}

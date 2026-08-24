@@ -88,7 +88,7 @@ export function RoomStage({ roomId, roomName }: { roomId: string; roomName: stri
       className="flex flex-1 flex-col overflow-hidden"
       onDisconnected={() => router.push("/")}
     >
-      <StageInner roomName={roomName} />
+      <StageInner roomId={roomId} roomName={roomName} />
     </LiveKitRoom>
   );
 }

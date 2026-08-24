@@ -1,4 +1,4 @@
-import { ROOMS } from "@/config/rooms";
+import { VOICE_ROOMS } from "@/config/rooms";
 import { getRoomServiceClient } from "@/lib/livekit/roomService";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,7 +13,7 @@ export async function GET() {
 
   const onlineIds = new Set<string>();
   await Promise.all(
-    ROOMS.map(async (room) => {
+    VOICE_ROOMS.map(async (room) => {
       try {
         const participants = await getRoomServiceClient().listParticipants(room.id);
         for (const p of participants) onlineIds.add(p.identity);
