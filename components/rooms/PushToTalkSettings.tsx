@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Keyboard } from "lucide-react";
 import { keyLabel, type PushToTalkConfig } from "@/lib/pushToTalk";
 
 export function PushToTalkSettings({
@@ -26,31 +27,36 @@ export function PushToTalkSettings({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
+    <div className="stage-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
       <div
-        className="w-80 rounded-xl border border-white/10 bg-[#151519] p-4 shadow-xl"
+        className="w-80 rounded-[20px] border border-stroke bg-glass-dark p-4 backdrop-blur-2xl"
+        style={{ boxShadow: "0 18px 50px rgba(0,0,0,.45)" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-3 text-sm font-medium text-[#F5F5F7]">Push-to-talk</h2>
+        <h2 className="mb-3 px-1 text-[14px] font-medium text-text-1">Push-to-talk</h2>
 
-        <label className="mb-3 flex items-center justify-between text-sm text-[#F5F5F7]">
+        <label className="mb-2 flex h-10 items-center justify-between rounded-[10px] bg-glass-1 px-3 text-[14.5px] text-text-2">
           Ativar push-to-talk
           <input
             type="checkbox"
             checked={config.enabled}
             onChange={(e) => onChange({ ...config, enabled: e.target.checked })}
+            className="h-4 w-4 accent-[var(--live)]"
           />
         </label>
 
         <button
           onClick={startCapture}
-          className="w-full rounded-lg border border-white/5 bg-[#1D1D23] px-3 py-2 text-left text-sm text-[#F5F5F7] transition hover:bg-[#26262E]"
+          className="flex w-full items-center gap-3 rounded-[10px] px-3 py-2.5 text-left text-text-2 transition-colors hover:bg-glass-1 hover:text-text-1"
         >
-          {capturing ? "Pressione uma tecla…" : `Tecla: ${keyLabel(config.key)}`}
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-glass-1">
+            <Keyboard size={15} strokeWidth={1.5} />
+          </span>
+          <span className="text-[14px] font-[450]">{capturing ? "Pressione uma tecla…" : `Tecla: ${keyLabel(config.key)}`}</span>
         </button>
 
-        <p className="mt-3 text-xs text-[#98989F]">
-          Com push-to-talk ativo, o microfone fica mudo por padrão. Segure a tecla configurada (ou o botão do
+        <p className="mt-3 px-1 text-[11.5px] text-text-3">
+          Com push-to-talk ativo, o microfone fica fechado por padrão. Segure a tecla configurada (ou o botão do
           microfone) para falar.
         </p>
       </div>

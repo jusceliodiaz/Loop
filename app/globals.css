@@ -1,21 +1,56 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0d0d10;
-  --foreground: #f5f5f7;
-  --surface: #151519;
-  --surface-elevated: #1d1d23;
-  --text-secondary: #98989f;
-  --accent: #7cf29c;
+  /* superfícies */
+  --bg-desktop: #4e5563;
+  --bg-shell: #101216;
+  --bg-sidebar: #17191e;
+  --bg-stage: #131519;
+
+  /* vidro */
+  --glass-1: rgba(255, 255, 255, 0.05);
+  --glass-2: rgba(255, 255, 255, 0.09);
+  --glass-3: rgba(255, 255, 255, 0.14);
+  --glass-dark: rgba(14, 15, 18, 0.72);
+  --stroke: rgba(255, 255, 255, 0.1);
+  --stroke-soft: rgba(255, 255, 255, 0.06);
+
+  /* texto */
+  --text-1: #f3f4f6;
+  --text-2: #a9aeb6;
+  --text-3: #767c85;
+
+  /* luz ambiente — padrão, substituída em runtime */
+  --amb-1: #c4762e;
+  --amb-2: #7a3b33;
+  --amb-3: #251c20;
+
+  /* sinal (uso mínimo) */
+  --live: #4ade80;
+  --alert: #f87171;
+
+  --background: var(--bg-shell);
+  --foreground: var(--text-1);
 }
 
 @theme inline {
+  --color-bg-desktop: var(--bg-desktop);
+  --color-bg-shell: var(--bg-shell);
+  --color-bg-sidebar: var(--bg-sidebar);
+  --color-bg-stage: var(--bg-stage);
+  --color-glass-1: var(--glass-1);
+  --color-glass-2: var(--glass-2);
+  --color-glass-3: var(--glass-3);
+  --color-glass-dark: var(--glass-dark);
+  --color-stroke: var(--stroke);
+  --color-stroke-soft: var(--stroke-soft);
+  --color-text-1: var(--text-1);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-live: var(--live);
+  --color-alert: var(--alert);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-surface: var(--surface);
-  --color-surface-elevated: var(--surface-elevated);
-  --color-text-secondary: var(--text-secondary);
-  --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -23,4 +58,84 @@
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+:focus-visible {
+  outline: 2px solid var(--text-2);
+  outline-offset: 2px;
+}
+
+@property --amb-1 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #c4762e;
+}
+@property --amb-2 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #7a3b33;
+}
+@property --amb-3 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #251c20;
+}
+
+.ambient-light {
+  background:
+    radial-gradient(120% 90% at 8% 0%, var(--amb-1) 0%, transparent 55%),
+    radial-gradient(110% 80% at 65% 40%, var(--amb-2) 0%, transparent 60%),
+    radial-gradient(140% 120% at 100% 100%, var(--amb-3) 0%, transparent 70%);
+  opacity: 0.85;
+  filter: blur(40px);
+  transition:
+    background 1.2s ease,
+    opacity 1.2s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes speaking-ring-in {
+    from {
+      opacity: 0;
+      box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+    }
+    to {
+      opacity: 1;
+      box-shadow: 0 0 0 6px rgba(74, 222, 128, 0.12);
+    }
+  }
+
+  .animate-speaking-ring {
+    animation: speaking-ring-in 90ms ease-out forwards;
+  }
+
+  .stage-surface {
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .stage-fade-in {
+    animation: stage-fade-in 180ms ease-out both;
+  }
+
+  @keyframes stage-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-speaking-ring,
+  .stage-surface,
+  .stage-fade-in {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .ambient-light {
+    transition: none !important;
+  }
 }

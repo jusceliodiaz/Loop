@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Plus } from "lucide-react";
 import { ROOMS } from "@/config/rooms";
 
 export function RoomSidebar() {
@@ -32,25 +33,34 @@ export function RoomSidebar() {
   }, []);
 
   return (
-    <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
+    <nav className="flex flex-col gap-0.5">
+      <button
+        type="button"
+        className="flex h-10 items-center gap-3 rounded-[10px] px-2.5 text-[14.5px] text-text-2 transition-colors hover:bg-glass-1 hover:text-text-1"
+      >
+        <Plus size={17} strokeWidth={1.5} />
+        Criar sala
+      </button>
+
       {ROOMS.map((room) => {
         const active = pathname === `/room/${room.id}`;
         const count = counts[room.id] ?? 0;
+        const occupied = count > 0;
         return (
           <Link
             key={room.id}
             href={`/room/${room.id}`}
-            className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm transition ${
-              active
-                ? "bg-[#1D1D23] text-[#F5F5F7]"
-                : "text-[#98989F] hover:bg-[#1D1D23]/60 hover:text-[#F5F5F7]"
+            className={`flex h-10 items-center gap-3 rounded-[10px] px-2.5 text-[14.5px] transition-colors ${
+              active ? "bg-glass-2 text-text-1" : "text-text-2 hover:bg-glass-1 hover:text-text-1"
             }`}
           >
-            <span className="flex items-center gap-2">
-              <span className={`h-1.5 w-1.5 rounded-full ${count > 0 ? "bg-[#7CF29C]" : "bg-[#3A3A42]"}`} />
-              {room.name}
-            </span>
-            {count > 0 && <span className="text-xs text-[#98989F]">{count}</span>}
+            <span
+              className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+                occupied ? "bg-live" : "border border-text-3 bg-transparent"
+              }`}
+            />
+            <span className="flex-1 truncate">{room.name}</span>
+            <span className="text-xs tabular-nums text-text-3">{occupied ? count : ""}</span>
           </Link>
         );
       })}
