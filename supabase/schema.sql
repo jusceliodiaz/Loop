@@ -70,7 +70,14 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  if auth.role() = 'service_role' then
+  -- Trusted callers this guard doesn't apply to: the service-role client
+  -- (auth.role() = 'service_role'), and anything running straight against
+  -- Postgres with no Supabase Auth session at all — the SQL Editor, a
+  -- migration, `psql` — which never has a JWT, so auth.uid() is null. A
+  -- real `authenticated` request always carries a `sub` claim; the only way
+  -- to reach this trigger with auth.uid() null is already a direct,
+  -- privileged database connection.
+  if auth.role() = 'service_role' or auth.uid() is null then
     return new;
   end if;
 
